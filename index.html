@@ -1,0 +1,4336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MangaForge Studio - Création de Manga Assistée par IA</title>
+    <style>
+        /* ===== VARIABLES CSS ===== */
+        :root {
+            /* Couleurs principales */
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            
+            /* Arrière-plans */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-sidebar: #1e293b;
+            --bg-card: #ffffff;
+            --bg-modal: rgba(0, 0, 0, 0.5);
+            --bg-canvas: #f1f5f9;
+            
+            /* Textes */
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-dim: #94a3b8;
+            --text-light: #f1f5f9;
+            
+            /* Bordures */
+            --border: #e2e8f0;
+            --border-dark: #cbd5e1;
+            
+            /* Ombres */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            
+            /* Rayons */
+            --radius-sm: 4px;
+            --radius: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            /* Espacements */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            
+            /* Canvas */
+            --canvas-grid: 20px;
+        }
+
+        /* ===== THÈME SOMBRE ===== */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-sidebar: #020617;
+            --bg-card: #1e293b;
+            --bg-canvas: #0f172a;
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-dim: #94a3b8;
+            
+            --border: #334155;
+            --border-dark: #475569;
+        }
+
+        /* ===== RÉINITIALISATION ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: var(--transition);
+            overflow-x: hidden;
+        }
+
+        /* ===== CONTAINER PRINCIPAL ===== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .nav-menu {
+            padding: var(--spacing-md) 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            cursor: pointer;
+            transition: var(--transition);
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            border-left: 4px solid var(--accent);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.9;
+        }
+
+        /* ===== CONTENU PRINCIPAL ===== */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            padding: var(--spacing-md) var(--spacing-xl);
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* ===== CONTENU DES PAGES ===== */
+        .content-area {
+            flex: 1;
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+        }
+
+        .page-content {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .page-content.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ===== PAGE TABLEAU DE BORD ===== */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--spacing-lg);
+            margin: var(--spacing-xl) 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* ===== GRID DE CARTES ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: var(--spacing-lg);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .card-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: var(--spacing-md) 0;
+            color: var(--text-dim);
+        }
+
+        .card-image img {
+            max-width: 100%;
+            border-radius: var(--radius);
+        }
+
+        .card-image svg {
+            width: 80px;
+            height: 80px;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: auto;
+            padding-top: var(--spacing-md);
+        }
+
+        /* ===== TAGS ===== */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-primary { background: #e0e7ff; color: #3730a3; }
+        .tag-secondary { background: #f1f5f9; color: #475569; }
+        .tag-success { background: #d1fae5; color: #065f46; }
+        .tag-warning { background: #fef3c7; color: #92400e; }
+        .tag-danger { background: #fee2e2; color: #991b1b; }
+        .tag-info { background: #dbeafe; color: #1e40af; }
+
+        /* ===== BOUTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            outline: none;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-large {
+            padding: 14px 28px;
+            font-size: 16px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== FORMULAIRES ===== */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-modal);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .modal-wide {
+            max-width: 800px;
+        }
+
+        .modal-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-dim);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-md);
+        }
+
+        /* ===== PAGE PROJETS ===== */
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .project-meta {
+            display: flex;
+            gap: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ===== PAGE CHAPITRES ===== */
+        .chapters-interface {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-lg);
+        }
+
+        .chapters-list-container {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chapters-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .chapter-item {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chapter-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .chapter-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .chapter-item.active .chapter-meta {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .chapter-info {
+            flex: 1;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .chapter-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .chapter-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-draft { background: #dbeafe; color: #1e40af; }
+        .status-in-progress { background: #fef3c7; color: #92400e; }
+        .status-review { background: #fce7f3; color: #9d174d; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+
+        .editor-container {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .editor-toolbar {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            background: var(--bg-secondary);
+        }
+
+        .editor-body {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .editor-body:empty:before {
+            content: attr(placeholder);
+            color: var(--text-dim);
+        }
+
+        /* ===== PAGE PERSONNAGES ===== */
+        .character-card .card-image {
+            position: relative;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .character-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto;
+        }
+
+        .character-details {
+            margin-top: var(--spacing-md);
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+        .character-avatar-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .character-relation-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .characters-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px;
+        }
+
+        .relations-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .detail-label {
+            color: var(--text-dim);
+        }
+
+        .detail-value {
+            font-weight: 500;
+            text-align: right;
+        }
+
+        /* ===== PAGE DÉCORS ===== */
+        .location-card .card-image svg {
+            width: 100%;
+            height: 120px;
+        }
+
+        .location-mood {
+            margin-top: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        /* ===== PAGE IA ===== */
+        .ai-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-lg);
+        }
+
+        .prompt-builder {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border);
+        }
+
+        .ai-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .ai-option-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .preview-area {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 2px dashed var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-placeholder {
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        .ai-history {
+            margin-top: var(--spacing-xl);
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: var(--spacing-md);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .history-image {
+            width: 100%;
+            height: 120px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .history-prompt {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ===== PAGE PLANCHES ===== */
+        .panels-container {
+            margin-top: var(--spacing-xl);
+        }
+
+        .canvas-tools {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .canvas-wrapper {
+            background: var(--bg-canvas);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            min-height: 600px;
+            position: relative;
+            overflow: auto;
+        }
+
+        #mangaCanvas {
+            display: block;
+            background: white;
+            cursor: crosshair;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: var(--canvas-grid) var(--canvas-grid);
+        }
+
+        .panel-tool {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .panel-tool:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .panel-tool.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .panel-properties {
+            margin-top: var(--spacing-lg);
+            background: var(--bg-card);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .panel-preset {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .panel-preset:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ===== NOTIFICATIONS ===== */
+        .notifications-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .notification {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideInRight 0.3s ease;
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification-content {
+            flex: 1;
+            margin-right: var(--spacing-md);
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 20px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .notification-close:hover {
+            background: var(--bg-secondary);
+        }
+
+        .notification-success { border-left-color: var(--success); }
+        .notification-error { border-left-color: var(--danger); }
+        .notification-warning { border-left-color: var(--warning); }
+        .notification-info { border-left-color: var(--info); }
+
+        /* ===== DROPDOWN ===== */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            min-width: 150px;
+            z-index: 100;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .dropdown.active .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: none;
+            border: none;
+            text-align: left;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .dropdown-item.danger {
+            color: var(--danger);
+        }
+
+        .dropdown-item.danger:hover {
+            background: #fee2e2;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .chapters-interface {
+                grid-template-columns: 1fr;
+            }
+            
+            .ai-interface {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .topbar {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: flex-start;
+            }
+            
+            .topbar-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                background: none;
+                border: none;
+                color: var(--text-primary);
+                font-size: 24px;
+                cursor: pointer;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 101;
+                background: var(--bg-primary);
+                width: 44px;
+                height: 44px;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+
+        /* ===== UTILITAIRES ===== */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl) var(--spacing-lg);
+            color: var(--text-dim);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-dim);
+        }
+
+        .loading-spinner {
+            border: 3px solid var(--bg-secondary);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== ONGLETS ===== */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab {
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* ===== BARRE DE PROGRESSION ===== */
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* ===== TIMELINE ===== */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: var(--spacing-md) 0;
+            padding-left: var(--spacing-lg);
+            border-left: 2px solid var(--border);
+            margin-left: 10px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -6px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .timeline-content {
+            font-size: 14px;
+        }
+
+        .timeline-time {
+            color: var(--text-dim);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        /* ===== TOOLTIPS ===== */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            background: var(--bg-sidebar);
+            color: white;
+            font-size: 12px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 1000;
+            margin-bottom: 8px;
+        }
+
+        [data-tooltip]:after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--bg-sidebar);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            margin-bottom: -2px;
+        }
+
+        [data-tooltip]:hover:before,
+        [data-tooltip]:hover:after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ===== SCROLLBAR PERSONNALISÉE ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-dim);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* ===== IMPRESSION ===== */
+        @media print {
+            .sidebar,
+            .topbar,
+            .modal,
+            .btn,
+            .notification {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .page-content {
+                display: block !important;
+                opacity: 1 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Conteneur des notifications -->
+    <div id="notifications" class="notifications-container"></div>
+
+    <!-- Bouton menu mobile -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+    <div class="app-container">
+        <!-- Sidebar de navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" id="goToDashboard">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                    </svg>
+                    MangaForge
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a class="nav-item active" data-page="dashboard">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                    Tableau de bord
+                </a>
+                <a class="nav-item" data-page="projects">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                    Mes Projets
+                </a>
+                <a class="nav-item" data-page="chapters">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    Chapitres
+                </a>
+                <a class="nav-item" data-page="characters">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    Personnages
+                </a>
+                <a class="nav-item" data-page="locations">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    Décors
+                </a>
+                <a class="nav-item" data-page="ai">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 9h10.5v3.5H4V9zm0 5.5h10.5V18H4v-3.5zM20 18h-3.5V9H20v9z"/>
+                    </svg>
+                    Assistant IA
+                </a>
+                <a class="nav-item" data-page="panels">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM11 17H4v-6h7v6zm9 0h-7v-2h7v2zm0-4h-7v-2h7v2zm0-4H4V7h16v2z"/>
+                    </svg>
+                    Planches
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Contenu principal -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-secondary" id="themeToggle">
+                        <span id="themeIcon">🌙</span>
+                        <span id="themeText">Mode sombre</span>
+                    </button>
+                    <button class="btn btn-primary" id="newProjectBtn">
+                        + Nouveau Projet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone de contenu -->
+            <div class="content-area">
+                <!-- Page: Tableau de bord -->
+                <div id="page-dashboard" class="page-content active">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsProjects">0</div>
+                            <div class="stat-label">Projets actifs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsCharacters">0</div>
+                            <div class="stat-label">Personnages créés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsChapters">0</div>
+                            <div class="stat-label">Chapitres écrits</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statsAI">0</div>
+                            <div class="stat-label">Générations IA</div>
+                        </div>
+                    </div>
+
+                    <h2>Projets récents</h2>
+                    <div class="card-grid" id="recentProjects">
+                        <!-- Les projets seront chargés ici -->
+                    </div>
+                </div>
+
+                <!-- Page: Projets -->
+                <div id="page-projects" class="page-content">
+                    <div class="project-header">
+                        <h2>Mes Projets</h2>
+                        <div class="project-meta">
+                            <span>Total: <strong id="totalProjects">0</strong></span>
+                            <span>En cours: <strong id="activeProjects">0</strong></span>
+                            <span>Terminés: <strong id="completedProjects">0</strong></span>
+                        </div>
+                    </div>
+                    <div class="card-grid" id="projectsList">
+                        <!-- Les projets seront chargés ici -->
+                    </div>
+                </div>
+
+                <!-- Page: Chapitres -->
+                <div id="page-chapters" class="page-content">
+                    <h2>Gestion des Chapitres</h2>
+                    <p class="text-secondary">Créez, éditez et organisez les chapitres de votre manga</p>
+
+                    <div class="chapters-interface">
+                        <!-- Liste des chapitres -->
+                        <div class="chapters-list-container">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Chapitres</h3>
+                                <button class="btn btn-primary btn-small" id="newChapterBtn">
+                                    + Nouveau
+                                </button>
+                            </div>
+                            <div class="chapters-list" id="chaptersList">
+                                <!-- Les chapitres seront chargés ici -->
+                            </div>
+                        </div>
+
+                        <!-- Éditeur de chapitre -->
+                        <div class="editor-container" id="chapterEditor" style="display: none;">
+                            <div class="modal-header">
+                                <h3 class="modal-title" id="editorTitle">Nouveau Chapitre</h3>
+                                <div>
+                                    <button class="btn btn-secondary btn-small" id="previewBtn">Prévisualiser</button>
+                                    <button class="btn btn-success btn-small" id="saveChapterBtn">Sauvegarder</button>
+                                </div>
+                            </div>
+
+                            <div class="tabs">
+                                <button class="tab active" data-tab="content">Contenu</button>
+                                <button class="tab" data-tab="metadata">Métadonnées</button>
+                                <button class="tab" data-tab="characters">Personnages</button>
+                                <button class="tab" data-tab="notes">Notes</button>
+                            </div>
+
+                            <div class="modal-body">
+                                <!-- Onglet Contenu -->
+                                <div class="tab-content active" id="tab-content">
+                                    <div class="form-group">
+                                        <label class="form-label">Numéro du chapitre</label>
+                                        <input type="number" class="form-input" id="chapterNumber" min="1" value="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Titre du chapitre</label>
+                                        <input type="text" class="form-input" id="chapterTitle" placeholder="Entrez le titre du chapitre">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Contenu</label>
+                                        <div class="editor-body" id="chapterContent" contenteditable="true" placeholder="Écrivez votre chapitre ici..."></div>
+                                    </div>
+                                </div>
+
+                                <!-- Onglet Métadonnées -->
+                                <div class="tab-content" id="tab-metadata">
+                                    <div class="form-group">
+                                        <label class="form-label">Statut</label>
+                                        <select class="form-select" id="chapterStatus">
+                                            <option value="draft">Brouillon</option>
+                                            <option value="in-progress">En cours</option>
+                                            <option value="review">Relecture</option>
+                                            <option value="completed">Terminé</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Mots-clés</label>
+                                        <input type="text" class="form-input" id="chapterKeywords" placeholder="Séparés par des virgules">
+                                    </div>
+                                </div>
+
+                                <!-- Onglet Personnages -->
+                                <div class="tab-content" id="tab-characters">
+                                    <div class="form-group">
+                                        <label class="form-label">Personnages présents</label>
+                                        <div id="charactersSelection">
+                                            <!-- Les personnages seront chargés ici -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Onglet Notes -->
+                                <div class="tab-content" id="tab-notes">
+                                    <div class="form-group">
+                                        <label class="form-label">Notes du chapitre</label>
+                                        <textarea class="form-textarea" id="chapterNotes" placeholder="Notes, idées, remarques..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Personnages -->
+                <div id="page-characters" class="page-content">
+                    <h2>Bibliothèque de Personnages</h2>
+                    <p class="text-secondary">Créez et gérez les personnages de vos mangas</p>
+
+                    <div class="card-grid" id="charactersList">
+                        <!-- Les personnages seront chargés ici -->
+                    </div>
+                    <button class="btn btn-primary" id="newCharacterBtn" style="margin-top: 24px;">
+                        + Nouveau Personnage
+                    </button>
+                </div>
+
+                <!-- Page: Décors -->
+                <div id="page-locations" class="page-content">
+                    <h2>Bibliothèque de Décors</h2>
+                    <p class="text-secondary">Créez et gérez les environnements de vos histoires</p>
+
+                    <div class="card-grid" id="locationsList">
+                        <!-- Les décors seront chargés ici -->
+                    </div>
+                    <button class="btn btn-primary" id="newLocationBtn" style="margin-top: 24px;">
+                        + Nouveau Décor
+                    </button>
+                </div>
+
+                <!-- Page: Assistant IA -->
+                <div id="page-ai" class="page-content">
+                    <h2>Assistant IA</h2>
+                    <p class="text-secondary">Générez des images pour vos mangas avec l'intelligence artificielle</p>
+
+                    <div class="ai-interface">
+                        <div class="prompt-builder">
+                            <h3>Générateur de Prompts</h3>
+                            
+                            <div class="ai-options">
+                                <div class="ai-option-group">
+                                    <label class="form-label">Style Manga</label>
+                                    <select class="form-select" id="aiStyle">
+                                        <option value="shonen">Shonen (action dynamique)</option>
+                                        <option value="shojo">Shojo (romantique, détaillé)</option>
+                                        <option value="seinen">Seinen (réaliste, mature)</option>
+                                        <option value="kodomo">Kodomo (enfantin, coloré)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="ai-option-group">
+                                    <label class="form-label">Résolution</label>
+                                    <select class="form-select" id="aiResolution">
+                                        <option value="512x512">512x512</option>
+                                        <option value="768x768">768x768</option>
+                                        <option value="1024x1024">1024x1024</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Sujet / Scène</label>
+                                <textarea class="form-textarea" id="aiPrompt" placeholder="Décrivez la scène à générer..."></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Éléments additionnels</label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                    <button class="btn btn-secondary btn-small" onclick="addAIPromptElement('lumière dramatique')">Lumière</button>
+                                    <button class="btn btn-secondary btn-small" onclick="addAIPromptElement('perspective dynamique')">Perspective</button>
+                                    <button class="btn btn-secondary btn-small" onclick="addAIPromptElement('expression intense')">Expression</button>
+                                    <button class="btn btn-secondary btn-small" onclick="addAIPromptElement('mouvement fluide')">Mouvement</button>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-large" id="generateAIBtn" style="width: 100%; margin-top: 16px;">
+                                ✨ Générer l'Image
+                            </button>
+                        </div>
+
+                        <div class="preview-area" id="aiPreview">
+                            <div class="preview-placeholder">
+                                <svg width="100" height="100" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                                    <rect x="10" y="10" width="80" height="80" rx="8" stroke-width="2"/>
+                                    <circle cx="35" cy="40" r="8" stroke-width="2"/>
+                                    <polyline points="15,70 35,50 50,65 85,30" stroke-width="2"/>
+                                </svg>
+                                <p>Votre image générée apparaîtra ici</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-history">
+                        <h3>Historique des Générations</h3>
+                        <div class="history-grid" id="aiHistoryGrid">
+                            <!-- L'historique sera chargé ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page: Planches -->
+                <div id="page-panels" class="page-content">
+                    <h2>Générateur de Planches</h2>
+                    <p class="text-secondary">Créez vos planches manga avec notre outil de dessin</p>
+                    
+                    <div class="canvas-tools">
+                        <div class="panel-tool active" data-tool="select" onclick="setTool('select')">✥ Sélection</div>
+                        <div class="panel-tool" data-tool="rectangle" onclick="setTool('rectangle')">▭ Rectangle</div>
+                        <div class="panel-tool" data-tool="line" onclick="setTool('line')">⎯ Ligne</div>
+                        <div class="panel-tool" data-tool="text" onclick="setTool('text')">T Texte</div>
+                        <div class="panel-tool" data-tool="erase" onclick="setTool('erase')">⌫ Effacer</div>
+                        <button class="btn btn-primary btn-small" onclick="clearCanvas()">Effacer tout</button>
+                        <button class="btn btn-success btn-small" onclick="savePanel()">💾 Sauvegarder</button>
+                    </div>
+                    
+                    <div class="canvas-wrapper">
+                        <canvas id="mangaCanvas" width="1200" height="800"></canvas>
+                    </div>
+                    
+                    <div class="panel-properties">
+                        <h3>Propriétés</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+                            <div>
+                                <label class="form-label">Couleur du trait</label>
+                                <input type="color" id="strokeColor" value="#000000" style="width: 100%; height: 40px;">
+                            </div>
+                            <div>
+                                <label class="form-label">Épaisseur</label>
+                                <input type="range" id="lineWidth" min="1" max="10" value="2" style="width: 100%;">
+                            </div>
+                            <div>
+                                <label class="form-label">Style de trait</label>
+                                <select id="lineStyle" class="form-select">
+                                    <option value="solid">Plein</option>
+                                    <option value="dashed">Pointillé</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-grid">
+                        <h3>Présets de planches</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 16px;">
+                            <div class="panel-preset" onclick="loadPanelPreset('single')">
+                                <strong>Simple</strong>
+                                <div style="font-size: 12px; color: var(--text-dim);">1 case</div>
+                            </div>
+                            <div class="panel-preset" onclick="loadPanelPreset('double')">
+                                <strong>Double</strong>
+                                <div style="font-size: 12px; color: var(--text-dim);">2 cases</div>
+                            </div>
+                            <div class="panel-preset" onclick="loadPanelPreset('triple')">
+                                <strong>Triple</strong>
+                                <div style="font-size: 12px; color: var(--text-dim);">3 cases</div>
+                            </div>
+                            <div class="panel-preset" onclick="loadPanelPreset('dynamic')">
+                                <strong>Dynamique</strong>
+                                <div style="font-size: 12px; color: var(--text-dim);">4+ cases</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Nouveau Projet -->
+    <div class="modal" id="modalNewProject">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau Projet</h2>
+                <button class="close-modal" data-modal="newProject">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Titre du projet</label>
+                    <input type="text" class="form-input" id="newProjectTitle" placeholder="Titre de votre manga">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Genre</label>
+                    <select class="form-select" id="newProjectGenre">
+                        <option>Shonen</option>
+                        <option>Shojo</option>
+                        <option>Seinen</option>
+                        <option>Kodomo</option>
+                        <option>Josei</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="newProjectDesc" placeholder="Décrivez votre projet..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="newProject">Annuler</button>
+                <button class="btn btn-primary" id="createProjectBtn">Créer le projet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Éditer Personnage -->
+    <div class="modal" id="modalEditCharacter">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Éditer Personnage</h2>
+                <button class="close-modal" data-modal="editCharacter">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editCharId">
+                <div class="form-group">
+                    <label class="form-label">Nom du personnage</label>
+                    <input type="text" class="form-input" id="editCharName" placeholder="Nom du personnage">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rôle</label>
+                    <select class="form-select" id="editCharRole">
+                        <option>Protagoniste</option>
+                        <option>Antagoniste</option>
+                        <option>Support</option>
+                        <option>Secondaire</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Âge</label>
+                    <input type="number" class="form-input" id="editCharAge" placeholder="Âge">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Personnalité</label>
+                    <textarea class="form-textarea" id="editCharPersonality" placeholder="Décrivez la personnalité..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apparence</label>
+                    <textarea class="form-textarea" id="editCharAppearance" placeholder="Décrivez l'apparence..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Histoire</label>
+                    <textarea class="form-textarea" id="editCharHistory" placeholder="Histoire du personnage..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pouvoirs/Compétences</label>
+                    <textarea class="form-textarea" id="editCharAbilities" placeholder="Pouvoirs, compétences..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteCharacterBtn">Supprimer</button>
+                <div>
+                    <button class="btn btn-secondary" data-modal="editCharacter">Annuler</button>
+                    <button class="btn btn-primary" id="updateCharacterBtn">Mettre à jour</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nouveau Personnage -->
+    <div class="modal" id="modalNewCharacter">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau Personnage</h2>
+                <button class="close-modal" data-modal="newCharacter">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom du personnage</label>
+                    <input type="text" class="form-input" id="newCharName" placeholder="Nom du personnage">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rôle</label>
+                    <select class="form-select" id="newCharRole">
+                        <option>Protagoniste</option>
+                        <option>Antagoniste</option>
+                        <option>Support</option>
+                        <option>Secondaire</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Âge</label>
+                    <input type="number" class="form-input" id="newCharAge" placeholder="Âge">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Personnalité</label>
+                    <textarea class="form-textarea" id="newCharPersonality" placeholder="Décrivez la personnalité..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apparence</label>
+                    <textarea class="form-textarea" id="newCharAppearance" placeholder="Décrivez l'apparence..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Histoire</label>
+                    <textarea class="form-textarea" id="newCharHistory" placeholder="Histoire du personnage..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pouvoirs/Compétences</label>
+                    <textarea class="form-textarea" id="newCharAbilities" placeholder="Pouvoirs, compétences..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="newCharacter">Annuler</button>
+                <button class="btn btn-primary" id="createCharacterBtn">Créer le personnage</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Éditer Décor -->
+    <div class="modal" id="modalEditLocation">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Éditer Décor</h2>
+                <button class="close-modal" data-modal="editLocation">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editLocId">
+                <div class="form-group">
+                    <label class="form-label">Nom du lieu</label>
+                    <input type="text" class="form-input" id="editLocName" placeholder="Nom du décor">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="editLocType">
+                        <option>Urbain</option>
+                        <option>Naturel</option>
+                        <option>Fantastique</option>
+                        <option>Futuriste</option>
+                        <option>Historique</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="editLocDesc" placeholder="Décrivez le décor..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ambiance</label>
+                    <input type="text" class="form-input" id="editLocMood" placeholder="Ex: sombre, lumineux, mystérieux...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Éléments importants</label>
+                    <textarea class="form-textarea" id="editLocElements" placeholder="Objets, meubles, végétation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sons/Ambiance sonore</label>
+                    <textarea class="form-textarea" id="editLocSounds" placeholder="Bruits, musique, silence..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteLocationBtn">Supprimer</button>
+                <div>
+                    <button class="btn btn-secondary" data-modal="editLocation">Annuler</button>
+                    <button class="btn btn-primary" id="updateLocationBtn">Mettre à jour</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nouveau Décor -->
+    <div class="modal" id="modalNewLocation">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nouveau Décor</h2>
+                <button class="close-modal" data-modal="newLocation">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom du lieu</label>
+                    <input type="text" class="form-input" id="newLocName" placeholder="Nom du décor">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" id="newLocType">
+                        <option>Urbain</option>
+                        <option>Naturel</option>
+                        <option>Fantastique</option>
+                        <option>Futuriste</option>
+                        <option>Historique</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="newLocDesc" placeholder="Décrivez le décor..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ambiance</label>
+                    <input type="text" class="form-input" id="newLocMood" placeholder="Ex: sombre, lumineux, mystérieux...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Éléments importants</label>
+                    <textarea class="form-textarea" id="newLocElements" placeholder="Objets, meubles, végétation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sons/Ambiance sonore</label>
+                    <textarea class="form-textarea" id="newLocSounds" placeholder="Bruits, musique, silence..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="newLocation">Annuler</button>
+                <button class="btn btn-primary" id="createLocationBtn">Créer le décor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Image IA -->
+    <div class="modal modal-wide" id="modalAIImage">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Image Générée par IA</h2>
+                <button class="close-modal" data-modal="aiImage">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="aiImagePreview" style="text-align: center;">
+                    <!-- L'image sera affichée ici -->
+                </div>
+                <div style="margin-top: 24px;">
+                    <h4>Prompt utilisé:</h4>
+                    <p id="aiImagePrompt" style="color: var(--text-secondary);"></p>
+                </div>
+                <div class="form-group" style="margin-top: 24px;">
+                    <label class="form-label">Nom de l'image</label>
+                    <input type="text" class="form-input" id="aiImageName" placeholder="Donnez un nom à cette image">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-modal="aiImage">Fermer</button>
+                <button class="btn btn-primary" id="downloadAIBtn">📥 Télécharger</button>
+                <button class="btn btn-success" id="saveAIImageBtn">💾 Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour gérer les relations -->
+    <div class="modal" id="modalCharacterRelations">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <h2 class="modal-title">Relations entre Personnages</h2>
+                <button class="close-modal" data-modal="characterRelations">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+                    <!-- Liste des personnages -->
+                    <div>
+                        <h3>Personnages</h3>
+                        <div id="characterRelationList" class="characters-list">
+                            <!-- Chargé dynamiquement -->
+                        </div>
+                    </div>
+                    
+                    <!-- Graphique des relations -->
+                    <div>
+                        <h3>Carte des Relations</h3>
+                        <div id="relationGraph" style="width: 100%; height: 400px; border: 1px solid var(--border); border-radius: var(--radius);">
+                            <!-- Graphique SVG/Canvas -->
+                        </div>
+                        
+                        <div style="margin-top: 24px;">
+                            <h4>Ajouter une relation</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 12px; align-items: end;">
+                                <div>
+                                    <label class="form-label">Personnage A</label>
+                                    <select id="relationCharA" class="form-select"></select>
+                                </div>
+                                <div>
+                                    <label class="form-label">Type</label>
+                                    <select id="relationType" class="form-select">
+                                        <option value="friend">Ami</option>
+                                        <option value="family">Famille</option>
+                                        <option value="rival">Rival</option>
+                                        <option value="romantic">Romantique</option>
+                                        <option value="mentor">Mentor</option>
+                                        <option value="enemy">Ennemi</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label">Description</label>
+                                    <input type="text" id="relationDesc" class="form-input" placeholder="Ex: Meilleurs amis depuis l'enfance">
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary" onclick="addCharacterRelation()">Ajouter</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Liste des relations existantes -->
+                <div style="margin-top: 32px;">
+                    <h3>Relations existantes</h3>
+                    <div id="existingRelations" class="relations-list">
+                        <!-- Chargé dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DONNÉES DE L'APPLICATION =====
+        const mangaData = {
+            // Données de l'utilisateur
+            currentUser: {
+                name: "Mangaka",
+                email: "mangaka@example.com"
+            },
+            
+            // Collections principales
+            projects: [],
+            chapters: [],
+            characters: [],
+            locations: [],
+            aiGenerations: [],
+            panels: [],
+            
+            // Paramètres
+            settings: {
+                theme: 'light',
+                autoSave: true,
+                notifications: true
+            },
+            
+            // État actuel
+            currentProjectId: null,
+            currentChapterId: null,
+            currentPage: 'dashboard',
+            currentCharacterId: null,
+            currentLocationId: null,
+            currentAIGenerationId: null
+        };
+
+        // ===== DONNÉES DE DÉMO =====
+        const demoData = {
+            projects: [
+                {
+                    id: 1,
+                    title: "Hero Academy",
+                    genre: "Shonen",
+                    description: "Une école pour jeunes héros où les étudiants apprennent à maîtriser leurs pouvoirs uniques.",
+                    status: "active",
+                    pages: 45,
+                    progress: 65,
+                    createdAt: "2024-01-15T10:30:00.000Z",
+                    updatedAt: "2024-01-20T14:45:00.000Z"
+                },
+                {
+                    id: 2,
+                    title: "Moonlight Romance",
+                    genre: "Shojo",
+                    description: "Une romance nocturne entre une étudiante timide et un mystérieux garçon.",
+                    status: "active",
+                    pages: 32,
+                    progress: 40,
+                    createdAt: "2023-11-10T09:15:00.000Z",
+                    updatedAt: "2024-01-05T16:20:00.000Z"
+                },
+                {
+                    id: 3,
+                    title: "Cyber Samurai",
+                    genre: "Seinen",
+                    description: "Dans un Tokyo futuriste, un ancien samouraï protège les derniers humains.",
+                    status: "planning",
+                    pages: 12,
+                    progress: 15,
+                    createdAt: "2024-01-10T14:20:00.000Z",
+                    updatedAt: "2024-01-10T14:20:00.000Z"
+                }
+            ],
+            
+            chapters: [
+                {
+                    id: 1,
+                    projectId: 1,
+                    number: 1,
+                    title: "Le Réveil",
+                    content: "Le soleil se levait sur Tokyo, illuminant les gratte-ciel qui semblaient toucher le ciel...",
+                    status: "completed",
+                    keywords: ["introduction", "rêve", "destin"],
+                    characters: [1, 2],
+                    notes: "Introduction des personnages principaux.",
+                    wordCount: 450,
+                    pages: 22,
+                    createdAt: "2024-01-20T09:00:00.000Z",
+                    updatedAt: "2024-01-25T14:30:00.000Z"
+                },
+                {
+                    id: 2,
+                    projectId: 1,
+                    number: 2,
+                    title: "L'Examen d'Entrée",
+                    content: "L'Académie des Héros était plus impressionnante qu'Akira ne l'avait imaginé...",
+                    status: "in-progress",
+                    keywords: ["examen", "pouvoirs", "tension"],
+                    characters: [1, 2, 3],
+                    notes: "Scène d'examen importante.",
+                    wordCount: 320,
+                    pages: 18,
+                    createdAt: "2024-01-21T10:15:00.000Z",
+                    updatedAt: "2024-01-25T16:45:00.000Z"
+                }
+            ],
+            
+            characters: [
+                {
+                    id: 1,
+                    name: "Akira Tanaka",
+                    role: "Protagoniste",
+                    age: 16,
+                    personality: "Déterminé, loyal, mais naïf. Il croit fermement en la justice.",
+                    appearance: "Cheveux noirs en désordre, yeux bleus perçants, cicatrice sur la joue droite. Porte généralement un uniforme scolaire.",
+                    history: "Orphelin élevé par son oncle, ancien héros.",
+                    abilities: "Contrôle de l'électricité, force surhumaine, capacité à voler sur de courtes distances.",
+                    createdAt: "2024-01-15T11:00:00.000Z",
+                    updatedAt: "2024-01-20T09:30:00.000Z"
+                },
+                {
+                    id: 2,
+                    name: "Yuki Himura",
+                    role: "Support",
+                    age: 15,
+                    personality: "Intelligente, timide mais courageuse quand il le faut. Très protectrice envers ses amis.",
+                    appearance: "Cheveux longs argentés jusqu'à la taille, yeux violets, petite stature. Porte des lunettes rondes.",
+                    history: "Fille de chercheurs scientifiques, elle a développé des pouvoirs après un accident de laboratoire.",
+                    abilities: "Cryokinèse (contrôle de la glace), intelligence accrue, création de barrières protectrices.",
+                    createdAt: "2024-01-16T09:30:00.000Z",
+                    updatedAt: "2024-01-22T14:15:00.000Z"
+                },
+                {
+                    id: 3,
+                    name: "Kenji Sato",
+                    role: "Antagoniste",
+                    age: 18,
+                    personality: "Mystérieux, puissant, charismatique. Obsédé par la force pure.",
+                    appearance: "Cheveux blancs, cicatrice sur l'œil gauche, regard perçant. Porte un long manteau noir.",
+                    history: "Ancien étudiant de l'Académie des Héros, expulsé pour ses méthodes extrêmes.",
+                    abilities: "Pyrokinèse avancée, régénération, capacité à absorber l'énergie des autres.",
+                    createdAt: "2024-01-17T14:15:00.000Z",
+                    updatedAt: "2024-01-25T11:45:00.000Z"
+                }
+            ],
+            
+            locations: [
+                {
+                    id: 1,
+                    name: "Tokyo Central High",
+                    type: "Urbain",
+                    mood: "Dynamique",
+                    description: "Lycée moderne au cœur de Tokyo avec des installations high-tech. Architecture futuriste avec beaucoup de verre et d'acier.",
+                    elements: "Salles de classe high-tech, terrain d'entraînement, laboratoire de sciences, cafétéria spacieuse.",
+                    sounds: "Cloche de l'école, bruits d'élèves, musique dans les couloirs, annonces du système.",
+                    createdAt: "2024-01-15T12:00:00.000Z",
+                    updatedAt: "2024-01-18T10:20:00.000Z"
+                },
+                {
+                    id: 2,
+                    name: "Forest of Spirits",
+                    type: "Fantastique",
+                    mood: "Mystérieux",
+                    description: "Forêt ancestrale où les esprits de la nature résident. Les arbres semblent vivants et brillent d'une lueur douce la nuit.",
+                    elements: "Arbres géants, champignons luminescents, ruisseaux cristallins, anciens autels de pierre.",
+                    sounds: "Chuchotements des esprits, ruisseau qui coule, feuilles qui bruissent, cris d'animaux nocturnes.",
+                    createdAt: "2024-01-16T10:45:00.000Z",
+                    updatedAt: "2024-01-19T16:30:00.000Z"
+                }
+            ],
+            
+            aiGenerations: [
+                {
+                    id: 1,
+                    prompt: "Un héros shonen avec une épée de feu, combat dynamique, style manga d'action",
+                    style: "shonen",
+                    resolution: "512x512",
+                    saved: true,
+                    timestamp: "2024-01-18T15:30:00.000Z"
+                },
+                {
+                    id: 2,
+                    prompt: "Une scène romantique sous la pluie, style shojo détaillé, émotions intenses",
+                    style: "shojo",
+                    resolution: "768x768",
+                    saved: false,
+                    timestamp: "2024-01-19T10:15:00.000Z"
+                }
+            ],
+            
+            panels: [
+                {
+                    id: 1,
+                    title: "Chapitre 1 - Page 1",
+                    projectId: 1,
+                    layout: "dynamic",
+                    data: "canvas_data_here",
+                    createdAt: "2024-01-20T14:00:00.000Z"
+                }
+            ]
+        };
+
+        // ===== INITIALISATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les données
+            loadData();
+            
+            // Configurer les écouteurs d'événements
+            setupEventListeners();
+            
+            // Initialiser l'interface
+            initUI();
+            
+            // Initialiser le canvas
+            initCanvas();
+            
+            // Afficher la page par défaut
+            showPage('dashboard');
+            
+            console.log('MangaForge Studio initialisé avec toutes les fonctionnalités!');
+        });
+
+        // ===== GESTION DES DONNÉES =====
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('mangaForgeData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    Object.assign(mangaData, data);
+                } else {
+                    // Charger les données de démo
+                    Object.assign(mangaData, JSON.parse(JSON.stringify(demoData)));
+                    saveData();
+                }
+            } catch (error) {
+                console.error('Erreur de chargement des données:', error);
+                showNotification('Erreur de chargement des données', 'error');
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('mangaForgeData', JSON.stringify(mangaData));
+                return true;
+            } catch (error) {
+                console.error('Erreur de sauvegarde:', error);
+                showNotification('Erreur de sauvegarde des données', 'error');
+                return false;
+            }
+        }
+
+        // ===== INTERFACE UTILISATEUR =====
+        function initUI() {
+            // Mettre à jour les statistiques
+            updateStats();
+            
+            // Charger les listes
+            renderProjects();
+            renderChapters();
+            renderCharacters();
+            renderLocations();
+            renderAIHistory();
+            
+            // Configurer le thème
+            const savedTheme = localStorage.getItem('mangaforge-theme') || 'light';
+            setTheme(savedTheme);
+        }
+
+        function updateStats() {
+            document.getElementById('statsProjects').textContent = mangaData.projects.length;
+            document.getElementById('statsCharacters').textContent = mangaData.characters.length;
+            document.getElementById('statsChapters').textContent = mangaData.chapters.length;
+            document.getElementById('statsAI').textContent = mangaData.aiGenerations.length;
+            
+            // Statistiques des projets
+            const totalProjects = mangaData.projects.length;
+            const activeProjects = mangaData.projects.filter(p => p.status === 'active').length;
+            const completedProjects = mangaData.projects.filter(p => p.status === 'completed').length;
+            
+            document.getElementById('totalProjects').textContent = totalProjects;
+            document.getElementById('activeProjects').textContent = activeProjects;
+            document.getElementById('completedProjects').textContent = completedProjects;
+        }
+
+        // ===== NAVIGATION =====
+        function setupEventListeners() {
+            // Navigation dans la sidebar
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    showPage(page);
+                    
+                    // Menu mobile: fermer la sidebar
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                });
+            });
+            
+            // Logo pour retourner au dashboard
+            document.getElementById('goToDashboard').addEventListener('click', function() {
+                showPage('dashboard');
+            });
+            
+            // Menu mobile
+            document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+            
+            // Boutons d'action
+            document.getElementById('newProjectBtn').addEventListener('click', () => openModal('newProject'));
+            document.getElementById('newChapterBtn').addEventListener('click', createNewChapter);
+            document.getElementById('newCharacterBtn').addEventListener('click', () => openModal('newCharacter'));
+            document.getElementById('newLocationBtn').addEventListener('click', () => openModal('newLocation'));
+            
+            // Boutons de création dans les modals
+            document.getElementById('createProjectBtn').addEventListener('click', createProject);
+            document.getElementById('createCharacterBtn').addEventListener('click', createCharacter);
+            document.getElementById('createLocationBtn').addEventListener('click', createLocation);
+            
+            // Boutons de mise à jour
+            document.getElementById('updateCharacterBtn').addEventListener('click', updateCharacter);
+            document.getElementById('updateLocationBtn').addEventListener('click', updateLocation);
+            
+            // Boutons de suppression
+            document.getElementById('deleteCharacterBtn').addEventListener('click', deleteCharacter);
+            document.getElementById('deleteLocationBtn').addEventListener('click', deleteLocation);
+            
+            // Boutons de fermeture des modals
+            document.querySelectorAll('[data-modal]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modal = this.getAttribute('data-modal');
+                    closeModal(modal);
+                });
+            });
+            
+            // Fermeture des modals au clic à l'extérieur
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        const modalId = this.id;
+                        const modalName = modalId.replace('modal', '').replace('Modal', '').toLowerCase();
+                        closeModal(modalName);
+                    }
+                });
+            });
+            
+            // Fermeture des modals avec Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                }
+            });
+            
+            // Thème
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Gestion des onglets dans l'éditeur de chapitres
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // Boutons de l'éditeur de chapitres
+            document.getElementById('saveChapterBtn').addEventListener('click', saveCurrentChapter);
+            document.getElementById('previewBtn').addEventListener('click', previewChapter);
+            
+            // Génération IA
+            document.getElementById('generateAIBtn').addEventListener('click', generateAIImage);
+            document.getElementById('saveAIImageBtn').addEventListener('click', saveAIImage);
+            document.getElementById('downloadAIBtn').addEventListener('click', downloadAIImage);
+            
+            // Sauvegarde automatique
+            setupAutoSave();
+            
+            // Dropdowns
+            setupDropdowns();
+        }
+
+        function setupDropdowns() {
+            document.addEventListener('click', function(e) {
+                // Fermer tous les dropdowns sauf celui cliqué
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+                
+                // Ouvrir/fermer le dropdown cliqué
+                if (e.target.closest('.dropdown-toggle')) {
+                    const dropdown = e.target.closest('.dropdown');
+                    dropdown.classList.toggle('active');
+                }
+            });
+        }
+
+        function showPage(page) {
+            // Mettre à jour l'état actuel
+            mangaData.currentPage = page;
+            
+            // Masquer toutes les pages
+            document.querySelectorAll('.page-content').forEach(p => {
+                p.classList.remove('active');
+            });
+            
+            // Afficher la page sélectionnée
+            const targetPage = document.getElementById(`page-${page}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // Mettre à jour le titre de la page
+            const pageTitles = {
+                'dashboard': 'Tableau de bord',
+                'projects': 'Mes Projets',
+                'chapters': 'Chapitres',
+                'characters': 'Personnages',
+                'locations': 'Décors',
+                'ai': 'Assistant IA',
+                'panels': 'Planches'
+            };
+            
+            document.getElementById('pageTitle').textContent = pageTitles[page] || 'MangaForge';
+            
+            // Mettre à jour la navigation active
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === page) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Charger les données spécifiques à la page
+            switch(page) {
+                case 'dashboard':
+                    renderRecentProjects();
+                    break;
+                case 'projects':
+                    renderProjects();
+                    break;
+                case 'chapters':
+                    renderChapters();
+                    break;
+                case 'characters':
+                    renderCharacters();
+                    break;
+                case 'locations':
+                    renderLocations();
+                    break;
+                case 'ai':
+                    renderAIHistory();
+                    break;
+                case 'panels':
+                    resizeCanvas();
+                    break;
+            }
+        }
+
+        // ===== GESTION DES PROJETS =====
+        function renderProjects() {
+            const container = document.getElementById('projectsList');
+            if (!container) return;
+            
+            const projects = mangaData.projects;
+            
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                            <rect x="10" y="10" width="80" height="60" rx="4" stroke-width="2"/>
+                            <line x1="50" y1="10" x2="50" y2="70" stroke-width="2"/>
+                            <line x1="10" y1="40" x2="90" y2="40" stroke-width="2"/>
+                        </svg>
+                        <p>Aucun projet pour le moment</p>
+                        <button class="btn btn-primary" id="createFirstProjectBtn" style="margin-top: 16px;">
+                            Créer votre premier projet
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('createFirstProjectBtn')?.addEventListener('click', () => openModal('newProject'));
+                return;
+            }
+            
+            container.innerHTML = projects.map(project => `
+                <div class="card" data-id="${project.id}">
+                    <div class="card-header">
+                        <h3 class="card-title">${escapeHTML(project.title)}</h3>
+                        <span class="tag tag-primary">${escapeHTML(project.genre)}</span>
+                    </div>
+                    <div class="card-image">
+                        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                            <rect x="10" y="10" width="80" height="60" rx="4" stroke-width="2"/>
+                            <line x1="50" y1="10" x2="50" y2="70" stroke-width="2"/>
+                            <line x1="10" y1="40" x2="90" y2="40" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 8px;">
+                            ${project.pages} pages • ${project.status === 'active' ? 'En cours' : 'Planification'}
+                        </div>
+                        <div style="font-size: 14px; line-height: 1.5;">
+                            ${escapeHTML(project.description.substring(0, 100))}...
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${project.progress || 0}%"></div>
+                    </div>
+                    <div style="text-align: center; color: var(--text-dim); font-size: 12px; margin-top: 8px;">
+                        ${project.progress || 0}% complété
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="openProject(${project.id})">
+                            Ouvrir
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle">⋯</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" onclick="editProject(${project.id})">Éditer</button>
+                                <button class="dropdown-item danger" onclick="deleteProject(${project.id})">Supprimer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentProjects() {
+            const container = document.getElementById('recentProjects');
+            if (!container) return;
+            
+            const recentProjects = mangaData.projects.slice(-3).reverse();
+            
+            if (recentProjects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <p>Commencez par créer votre premier projet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = recentProjects.map(project => `
+                <div class="card" data-id="${project.id}">
+                    <div class="card-header">
+                        <h3 class="card-title">${escapeHTML(project.title)}</h3>
+                        <span class="tag tag-primary">${escapeHTML(project.genre)}</span>
+                    </div>
+                    <div class="card-image">
+                        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                            <rect x="10" y="10" width="80" height="60" rx="4" stroke-width="2"/>
+                            <line x1="50" y1="10" x2="50" y2="70" stroke-width="2"/>
+                            <line x1="10" y1="40" x2="90" y2="40" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 8px;">
+                            ${project.pages} pages • ${project.status === 'active' ? 'En cours' : 'Planification'}
+                        </div>
+                        <div style="font-size: 14px; line-height: 1.5;">
+                            ${escapeHTML(project.description.substring(0, 80))}...
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="openProject(${project.id})">
+                            Ouvrir
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createProject() {
+            const title = document.getElementById('newProjectTitle').value.trim();
+            const genre = document.getElementById('newProjectGenre').value;
+            const description = document.getElementById('newProjectDesc').value.trim();
+            
+            if (!title) {
+                showNotification('Veuillez entrer un titre pour le projet', 'warning');
+                return;
+            }
+            
+            const newProject = {
+                id: Date.now(),
+                title,
+                genre,
+                description,
+                status: 'active',
+                pages: 0,
+                progress: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            mangaData.projects.push(newProject);
+            saveData();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('newProjectTitle').value = '';
+            document.getElementById('newProjectDesc').value = '';
+            
+            // Fermer le modal
+            closeModal('newProject');
+            
+            // Mettre à jour l'interface
+            updateStats();
+            renderProjects();
+            renderRecentProjects();
+            
+            showNotification(`Projet "${title}" créé avec succès!`, 'success');
+        }
+
+        // ===== GESTION DES PERSONNAGES =====
+        function renderCharacters() {
+            const container = document.getElementById('charactersList');
+            if (!container) return;
+            
+            const characters = mangaData.characters;
+            
+            if (characters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                            <circle cx="50" cy="35" r="15" stroke-width="2"/>
+                            <path d="M 30 80 Q 50 60 70 80" stroke-width="2"/>
+                        </svg>
+                        <p>Aucun personnage pour le moment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = characters.map(character => `
+                <div class="card character-card">
+                    <div class="card-header">
+                        <h3 class="card-title">${escapeHTML(character.name)}</h3>
+                        <span class="tag tag-success">${escapeHTML(character.role)}</span>
+                    </div>
+                    <div class="card-image">
+                        <div class="character-avatar">
+                            ${character.name.charAt(0)}
+                        </div>
+                    </div>
+                    
+                    <div class="character-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Âge:</span>
+                            <span class="detail-value">${escapeHTML(character.age)} ans</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Créé le:</span>
+                            <span class="detail-value">${formatDate(character.createdAt)}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--text-secondary);">
+                        ${escapeHTML(character.personality.substring(0, 100))}...
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="editCharacter(${character.id})">
+                            Éditer
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle">⋯</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" onclick="generateCharacterImage(${character.id})">
+                                    🎨 Générer image IA
+                                </button>
+                                <button class="dropdown-item" onclick="exportCharacter(${character.id})">
+                                    📤 Exporter
+                                </button>
+                                <button class="dropdown-item danger" onclick="confirmDeleteCharacter(${character.id})">
+                                    🗑️ Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createCharacter() {
+            const name = document.getElementById('newCharName').value.trim();
+            const role = document.getElementById('newCharRole').value;
+            const age = document.getElementById('newCharAge').value;
+            const personality = document.getElementById('newCharPersonality').value.trim();
+            const appearance = document.getElementById('newCharAppearance').value.trim();
+            const history = document.getElementById('newCharHistory').value.trim();
+            const abilities = document.getElementById('newCharAbilities').value.trim();
+            
+            if (!name) {
+                showNotification('Veuillez entrer un nom pour le personnage', 'warning');
+                return;
+            }
+            
+            const newCharacter = {
+                id: Date.now(),
+                name,
+                role,
+                age: age || 'Non spécifié',
+                personality: personality || 'À définir',
+                appearance: appearance || 'À définir',
+                history: history || '',
+                abilities: abilities || '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            mangaData.characters.push(newCharacter);
+            saveData();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('newCharName').value = '';
+            document.getElementById('newCharAge').value = '';
+            document.getElementById('newCharPersonality').value = '';
+            document.getElementById('newCharAppearance').value = '';
+            document.getElementById('newCharHistory').value = '';
+            document.getElementById('newCharAbilities').value = '';
+            
+            // Fermer le modal
+            closeModal('newCharacter');
+            
+            // Mettre à jour l'interface
+            updateStats();
+            renderCharacters();
+            
+            showNotification(`Personnage "${name}" créé avec succès!`, 'success');
+        }
+
+        function editCharacter(characterId) {
+            const character = mangaData.characters.find(c => c.id === characterId);
+            if (!character) return;
+            
+            mangaData.currentCharacterId = characterId;
+            
+            // Remplir le formulaire d'édition
+            document.getElementById('editCharId').value = character.id;
+            document.getElementById('editCharName').value = character.name;
+            document.getElementById('editCharRole').value = character.role;
+            document.getElementById('editCharAge').value = character.age;
+            document.getElementById('editCharPersonality').value = character.personality;
+            document.getElementById('editCharAppearance').value = character.appearance;
+            document.getElementById('editCharHistory').value = character.history || '';
+            document.getElementById('editCharAbilities').value = character.abilities || '';
+            
+            openModal('editCharacter');
+        }
+
+        function updateCharacter() {
+            const characterId = parseInt(document.getElementById('editCharId').value);
+            const character = mangaData.characters.find(c => c.id === characterId);
+            
+            if (!character) return;
+            
+            character.name = document.getElementById('editCharName').value.trim();
+            character.role = document.getElementById('editCharRole').value;
+            character.age = document.getElementById('editCharAge').value;
+            character.personality = document.getElementById('editCharPersonality').value.trim();
+            character.appearance = document.getElementById('editCharAppearance').value.trim();
+            character.history = document.getElementById('editCharHistory').value.trim();
+            character.abilities = document.getElementById('editCharAbilities').value.trim();
+            character.updatedAt = new Date().toISOString();
+            
+            saveData();
+            renderCharacters();
+            closeModal('editCharacter');
+            
+            showNotification(`Personnage "${character.name}" mis à jour!`, 'success');
+        }
+
+        function confirmDeleteCharacter(characterId) {
+            const character = mangaData.characters.find(c => c.id === characterId);
+            if (!character) return;
+            
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le personnage "${character.name}" ?`)) {
+                deleteCharacter(characterId);
+            }
+        }
+
+        function deleteCharacter(characterId) {
+            const character = mangaData.characters.find(c => c.id === characterId);
+            if (!character) return;
+            
+            const index = mangaData.characters.findIndex(c => c.id === characterId);
+            if (index !== -1) {
+                mangaData.characters.splice(index, 1);
+                saveData();
+                updateStats();
+                renderCharacters();
+                closeModal('editCharacter');
+                
+                showNotification(`Personnage "${character.name}" supprimé!`, 'info');
+            }
+        }
+
+        // ===== GESTION DES DÉCORS =====
+        function renderLocations() {
+            const container = document.getElementById('locationsList');
+            if (!container) return;
+            
+            const locations = mangaData.locations;
+            
+            if (locations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <svg viewBox="0 0 100 60" fill="none" stroke="currentColor">
+                            <path d="M 10 50 L 30 30 L 50 40 L 70 20 L 90 35" stroke-width="2"/>
+                            <rect x="20" y="35" width="15" height="15" stroke-width="2"/>
+                            <rect x="60" y="25" width="20" height="25" stroke-width="2"/>
+                        </svg>
+                        <p>Aucun décor pour le moment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = locations.map(location => `
+                <div class="card location-card">
+                    <div class="card-header">
+                        <h3 class="card-title">${escapeHTML(location.name)}</h3>
+                        <span class="tag tag-warning">${escapeHTML(location.type)}</span>
+                    </div>
+                    <div class="card-image">
+                        <svg viewBox="0 0 100 60" fill="none" stroke="currentColor">
+                            <path d="M 10 50 L 30 30 L 50 40 L 70 20 L 90 35" stroke-width="2"/>
+                            <rect x="20" y="35" width="15" height="15" stroke-width="2"/>
+                            <rect x="60" y="25" width="20" height="25" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="location-mood">
+                        <span style="color: var(--text-dim);">Ambiance:</span>
+                        <strong>${escapeHTML(location.mood)}</strong>
+                    </div>
+                    
+                    <div style="margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--text-secondary);">
+                        ${escapeHTML(location.description.substring(0, 100))}...
+                    </div>
+                    
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" style="flex: 1;" onclick="editLocation(${location.id})">
+                            Éditer
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle">⋯</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" onclick="generateLocationImage(${location.id})">
+                                    📸 Générer image IA
+                                </button>
+                                <button class="dropdown-item" onclick="exportLocation(${location.id})">
+                                    📤 Exporter
+                                </button>
+                                <button class="dropdown-item danger" onclick="confirmDeleteLocation(${location.id})">
+                                    🗑️ Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function createLocation() {
+            const name = document.getElementById('newLocName').value.trim();
+            const type = document.getElementById('newLocType').value;
+            const description = document.getElementById('newLocDesc').value.trim();
+            const mood = document.getElementById('newLocMood').value.trim();
+            const elements = document.getElementById('newLocElements').value.trim();
+            const sounds = document.getElementById('newLocSounds').value.trim();
+            
+            if (!name) {
+                showNotification('Veuillez entrer un nom pour le décor', 'warning');
+                return;
+            }
+            
+            const newLocation = {
+                id: Date.now(),
+                name,
+                type,
+                description: description || 'À définir',
+                mood: mood || 'À définir',
+                elements: elements || '',
+                sounds: sounds || '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            mangaData.locations.push(newLocation);
+            saveData();
+            
+            // Réinitialiser le formulaire
+            document.getElementById('newLocName').value = '';
+            document.getElementById('newLocDesc').value = '';
+            document.getElementById('newLocMood').value = '';
+            document.getElementById('newLocElements').value = '';
+            document.getElementById('newLocSounds').value = '';
+            
+            // Fermer le modal
+            closeModal('newLocation');
+            
+            // Mettre à jour l'interface
+            updateStats();
+            renderLocations();
+            
+            showNotification(`Décor "${name}" créé avec succès!`, 'success');
+        }
+
+        function editLocation(locationId) {
+            const location = mangaData.locations.find(l => l.id === locationId);
+            if (!location) return;
+            
+            mangaData.currentLocationId = locationId;
+            
+            // Remplir le formulaire d'édition
+            document.getElementById('editLocId').value = location.id;
+            document.getElementById('editLocName').value = location.name;
+            document.getElementById('editLocType').value = location.type;
+            document.getElementById('editLocDesc').value = location.description;
+            document.getElementById('editLocMood').value = location.mood;
+            document.getElementById('editLocElements').value = location.elements || '';
+            document.getElementById('editLocSounds').value = location.sounds || '';
+            
+            openModal('editLocation');
+        }
+
+        function updateLocation() {
+            const locationId = parseInt(document.getElementById('editLocId').value);
+            const location = mangaData.locations.find(l => l.id === locationId);
+            
+            if (!location) return;
+            
+            location.name = document.getElementById('editLocName').value.trim();
+            location.type = document.getElementById('editLocType').value;
+            location.description = document.getElementById('editLocDesc').value.trim();
+            location.mood = document.getElementById('editLocMood').value.trim();
+            location.elements = document.getElementById('editLocElements').value.trim();
+            location.sounds = document.getElementById('editLocSounds').value.trim();
+            location.updatedAt = new Date().toISOString();
+            
+            saveData();
+            renderLocations();
+            closeModal('editLocation');
+            
+            showNotification(`Décor "${location.name}" mis à jour!`, 'success');
+        }
+
+        function confirmDeleteLocation(locationId) {
+            const location = mangaData.locations.find(l => l.id === locationId);
+            if (!location) return;
+            
+            if (confirm(`Êtes-vous sûr de vouloir supprimer le décor "${location.name}" ?`)) {
+                deleteLocation(locationId);
+            }
+        }
+
+        function deleteLocation(locationId) {
+            const location = mangaData.locations.find(l => l.id === locationId);
+            if (!location) return;
+            
+            const index = mangaData.locations.findIndex(l => l.id === locationId);
+            if (index !== -1) {
+                mangaData.locations.splice(index, 1);
+                saveData();
+                updateStats();
+                renderLocations();
+                closeModal('editLocation');
+                
+                showNotification(`Décor "${location.name}" supprimé!`, 'info');
+            }
+        }
+
+        // ===== ASSISTANT IA =====
+        function renderAIHistory() {
+            const container = document.getElementById('aiHistoryGrid');
+            if (!container) return;
+            
+            const generations = mangaData.aiGenerations.slice().reverse();
+            
+            if (generations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <p>Aucune génération IA pour le moment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = generations.map(gen => `
+                <div class="history-item" onclick="viewAIGeneration(${gen.id})">
+                    <div class="history-image">
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; padding: 8px; text-align: center;">
+                            ${gen.style.toUpperCase()}<br/>${gen.resolution}
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 4px;">
+                        ${formatDate(gen.timestamp)}
+                    </div>
+                    <div class="history-prompt">
+                        ${escapeHTML(gen.prompt.substring(0, 60))}...
+                    </div>
+                    ${gen.saved ? '<div style="font-size: 10px; color: var(--success); margin-top: 4px;">💾 Sauvegardé</div>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function generateAIImage() {
+            const style = document.getElementById('aiStyle').value;
+            const prompt = document.getElementById('aiPrompt').value.trim();
+            const resolution = document.getElementById('aiResolution').value;
+            
+            if (!prompt) {
+                showNotification('Veuillez décrire la scène à générer', 'warning');
+                return;
+            }
+            
+            const preview = document.getElementById('aiPreview');
+            preview.innerHTML = '<div class="loading-spinner"></div>';
+            
+            // Simulation de génération IA (dans la réalité, appeler une API)
+            setTimeout(() => {
+                const newGeneration = {
+                    id: Date.now(),
+                    prompt,
+                    style,
+                    resolution,
+                    saved: false,
+                    timestamp: new Date().toISOString()
+                };
+                
+                mangaData.aiGenerations.push(newGeneration);
+                saveData();
+                updateStats();
+                
+                // Afficher le résultat
+                const colors = {
+                    'shonen': ['#ef4444', '#f97316'],
+                    'shojo': ['#ec4899', '#d946ef'],
+                    'seinen': ['#3b82f6', '#6366f1'],
+                    'kodomo': ['#10b981', '#14b8a6']
+                };
+                
+                const [color1, color2] = colors[style] || colors['shonen'];
+                
+                preview.innerHTML = `
+                    <div style="text-align: center; padding: 20px; width: 100%;">
+                        <div style="width: 300px; height: 300px; background: linear-gradient(135deg, ${color1}, ${color2}); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; margin: 0 auto; position: relative;">
+                            <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                ${style.toUpperCase()}
+                            </div>
+                            <div style="text-align: center; padding: 20px;">
+                                <div style="font-size: 24px; margin-bottom: 10px;">🎨</div>
+                                Image générée<br/>
+                                <div style="font-size: 14px; margin-top: 10px; opacity: 0.8;">
+                                    ${prompt.substring(0, 30)}...
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn btn-primary" onclick="saveAIGeneration(${newGeneration.id})">
+                                💾 Sauvegarder
+                            </button>
+                            <button class="btn btn-secondary" onclick="regenerateAIImage()">
+                                🔄 Régénérer
+                            </button>
+                            <button class="btn btn-success" onclick="useInPanel(${newGeneration.id})">
+                                🖼️ Utiliser dans planche
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                renderAIHistory();
+                showNotification('Image générée avec succès!', 'success');
+            }, 2000);
+        }
+
+        function viewAIGeneration(generationId) {
+            const generation = mangaData.aiGenerations.find(g => g.id === generationId);
+            if (!generation) return;
+            
+            mangaData.currentAIGenerationId = generationId;
+            
+            const colors = {
+                'shonen': ['#ef4444', '#f97316'],
+                'shojo': ['#ec4899', '#d946ef'],
+                'seinen': ['#3b82f6', '#6366f1'],
+                'kodomo': ['#10b981', '#14b8a6']
+            };
+            
+            const [color1, color2] = colors[generation.style] || colors['shonen'];
+            
+            document.getElementById('aiImagePreview').innerHTML = `
+                <div style="width: 100%; max-width: 500px; height: 500px; background: linear-gradient(135deg, ${color1}, ${color2}); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin: 0 auto; position: relative;">
+                    <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; font-size: 14px;">
+                        ${generation.style.toUpperCase()} • ${generation.resolution}
+                    </div>
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🎨</div>
+                        <div style="font-size: 20px; margin-bottom: 10px;">Image IA Générée</div>
+                        <div style="font-size: 16px; opacity: 0.8; max-width: 400px;">
+                            ${generation.prompt}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('aiImagePrompt').textContent = generation.prompt;
+            document.getElementById('aiImageName').value = `IA_${generation.style}_${formatDate(generation.timestamp)}`;
+            
+            openModal('aiImage');
+        }
+
+        function saveAIGeneration(generationId) {
+            const generation = mangaData.aiGenerations.find(g => g.id === generationId);
+            if (!generation) return;
+            
+            generation.saved = true;
+            saveData();
+            renderAIHistory();
+            
+            showNotification('Image sauvegardée dans votre bibliothèque!', 'success');
+        }
+
+        function downloadAIImage() {
+            const generation = mangaData.aiGenerations.find(g => g.id === mangaData.currentAIGenerationId);
+            if (!generation) return;
+            
+            // Dans la réalité, télécharger l'image générée
+            // Pour la simulation, créer un canvas et le télécharger
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Créer un dégradé pour l'image de démonstration
+            const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+            gradient.addColorStop(0, '#6366f1');
+            gradient.addColorStop(1, '#ec4899');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Ajouter du texte
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Image IA Générée', 256, 256);
+            ctx.font = '16px Arial';
+            ctx.fillText(generation.prompt.substring(0, 50), 256, 300);
+            
+            // Télécharger
+            const link = document.createElement('a');
+            link.download = `mangaforge_${generation.id}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            showNotification('Image téléchargée!', 'success');
+        }
+
+        function saveAIImage() {
+            const name = document.getElementById('aiImageName').value.trim() || `IA_${Date.now()}`;
+            const generation = mangaData.aiGenerations.find(g => g.id === mangaData.currentAIGenerationId);
+            
+            if (generation) {
+                generation.saved = true;
+                generation.name = name;
+                saveData();
+                renderAIHistory();
+                
+                showNotification(`Image "${name}" sauvegardée!`, 'success');
+                closeModal('aiImage');
+            }
+        }
+
+        function addAIPromptElement(element) {
+            const promptField = document.getElementById('aiPrompt');
+            const currentPrompt = promptField.value.trim();
+            
+            if (currentPrompt) {
+                promptField.value = currentPrompt + ', ' + element;
+            } else {
+                promptField.value = element;
+            }
+        }
+
+        // ===== PLANCHES MANGA =====
+        let canvas, ctx;
+        let currentTool = 'rectangle';
+        let isDrawing = false;
+        let startX, startY;
+        let panels = [];
+        let currentPanel = null;
+
+        function initCanvas() {
+            canvas = document.getElementById('mangaCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Événements du canvas
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Événements tactiles
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            // Initialiser les propriétés
+            updateCanvasStyle();
+            
+            // Dessiner la grille
+            drawGrid();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth - 40;
+            canvas.height = Math.max(600, container.clientHeight - 100);
+            
+            // Redessiner
+            drawGrid();
+            redrawPanels();
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Grille de fond
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // Lignes verticales
+            for (let x = 0; x <= canvas.width; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Lignes horizontales
+            for (let y = 0; y <= canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function redrawPanels() {
+            drawGrid();
+            
+            // Redessiner tous les panels
+            panels.forEach(panel => {
+                drawPanel(panel);
+            });
+            
+            // Redessiner le panel en cours
+            if (currentPanel && isDrawing) {
+                drawPanel(currentPanel);
+            }
+        }
+
+        function drawPanel(panel) {
+            updateCanvasStyle();
+            
+            if (panel.type === 'rectangle') {
+                ctx.strokeRect(panel.x, panel.y, panel.width, panel.height);
+                
+                // Ajouter un numéro si c'est un panel
+                if (panel.number) {
+                    ctx.fillStyle = 'black';
+                    ctx.font = '16px Arial';
+                    ctx.fillText(panel.number.toString(), panel.x + 10, panel.y + 20);
+                }
+            } else if (panel.type === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(panel.x1, panel.y1);
+                ctx.lineTo(panel.x2, panel.y2);
+                ctx.stroke();
+            } else if (panel.type === 'text') {
+                ctx.fillStyle = 'black';
+                ctx.font = panel.font || '16px Arial';
+                ctx.fillText(panel.text, panel.x, panel.y);
+            }
+        }
+
+        function startDrawing(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            startX = x;
+            startY = y;
+            isDrawing = true;
+            
+            if (currentTool === 'rectangle') {
+                currentPanel = {
+                    type: 'rectangle',
+                    x: x,
+                    y: y,
+                    width: 0,
+                    height: 0,
+                    number: panels.filter(p => p.type === 'rectangle').length + 1
+                };
+            } else if (currentTool === 'line') {
+                currentPanel = {
+                    type: 'line',
+                    x1: x,
+                    y1: y,
+                    x2: x,
+                    y2: y
+                };
+            } else if (currentTool === 'text') {
+                const text = prompt('Entrez le texte:', '');
+                if (text) {
+                    panels.push({
+                        type: 'text',
+                        x: x,
+                        y: y,
+                        text: text,
+                        font: '16px Arial'
+                    });
+                    redrawPanels();
+                }
+            } else if (currentTool === 'erase') {
+                // Trouver et supprimer le panel sous le curseur
+                const index = panels.findIndex(panel => {
+                    if (panel.type === 'rectangle') {
+                        return x >= panel.x && x <= panel.x + panel.width &&
+                               y >= panel.y && y <= panel.y + panel.height;
+                    } else if (panel.type === 'line') {
+                        // Vérification simplifiée pour les lignes
+                        const dist = distanceToLine(x, y, panel.x1, panel.y1, panel.x2, panel.y2);
+                        return dist < 10;
+                    } else if (panel.type === 'text') {
+                        // Pour le texte, vérifier approximativement
+                        ctx.font = panel.font;
+                        const metrics = ctx.measureText(panel.text);
+                        return x >= panel.x && x <= panel.x + metrics.width &&
+                               y >= panel.y - 16 && y <= panel.y;
+                    }
+                    return false;
+                });
+                
+                if (index !== -1) {
+                    panels.splice(index, 1);
+                    redrawPanels();
+                }
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing || !currentPanel) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (currentTool === 'rectangle') {
+                currentPanel.width = x - startX;
+                currentPanel.height = y - startY;
+            } else if (currentTool === 'line') {
+                currentPanel.x2 = x;
+                currentPanel.y2 = y;
+            }
+            
+            redrawPanels();
+        }
+
+        function stopDrawing() {
+            if (!isDrawing || !currentPanel) return;
+            
+            isDrawing = false;
+            
+            if (currentPanel && (currentTool === 'rectangle' || currentTool === 'line')) {
+                // Vérifier si le panel a une taille significative
+                if (Math.abs(currentPanel.width) > 10 || Math.abs(currentPanel.height) > 10 || currentTool === 'line') {
+                    panels.push({...currentPanel});
+                }
+            }
+            
+            currentPanel = null;
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            
+            // Mettre à jour les boutons actifs
+            document.querySelectorAll('.panel-tool').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.panel-tool[data-tool="${tool}"]`).classList.add('active');
+        }
+
+        function updateCanvasStyle() {
+            const strokeColor = document.getElementById('strokeColor').value;
+            const lineWidth = document.getElementById('lineWidth').value;
+            const lineStyle = document.getElementById('lineStyle').value;
+            
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            
+            if (lineStyle === 'dashed') {
+                ctx.setLineDash([5, 5]);
+            } else {
+                ctx.setLineDash([]);
+            }
+        }
+
+        function clearCanvas() {
+            if (confirm('Êtes-vous sûr de vouloir effacer toute la planche ?')) {
+                panels = [];
+                redrawPanels();
+                showNotification('Planche effacée', 'info');
+            }
+        }
+
+        function savePanel() {
+            const title = prompt('Nommez votre planche:', `Planche_${formatDate(new Date())}`);
+            if (!title) return;
+            
+            const panelData = {
+                id: Date.now(),
+                title: title,
+                projectId: mangaData.currentProjectId || 1,
+                layout: 'custom',
+                panels: panels,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Sauvegarder l'image du canvas
+            const imageData = canvas.toDataURL('image/png');
+            panelData.imageData = imageData;
+            
+            mangaData.panels.push(panelData);
+            saveData();
+            
+            showNotification(`Planche "${title}" sauvegardée!`, 'success');
+        }
+
+        function loadPanelPreset(preset) {
+            panels = [];
+            
+            switch(preset) {
+                case 'single':
+                    panels.push({
+                        type: 'rectangle',
+                        x: 50,
+                        y: 50,
+                        width: canvas.width - 100,
+                        height: canvas.height - 100,
+                        number: 1
+                    });
+                    break;
+                    
+                case 'double':
+                    panels.push({
+                        type: 'rectangle',
+                        x: 50,
+                        y: 50,
+                        width: canvas.width - 100,
+                        height: (canvas.height - 150) / 2,
+                        number: 1
+                    });
+                    panels.push({
+                        type: 'rectangle',
+                        x: 50,
+                        y: (canvas.height - 150) / 2 + 100,
+                        width: canvas.width - 100,
+                        height: (canvas.height - 150) / 2,
+                        number: 2
+                    });
+                    break;
+                    
+                case 'triple':
+                    const third = (canvas.width - 150) / 3;
+                    
+                    panels.push({
+                        type: 'rectangle',
+                        x: 50,
+                        y: 50,
+                        width: third,
+                        height: canvas.height - 100,
+                        number: 1
+                    });
+                    panels.push({
+                        type: 'rectangle',
+                        x: 100 + third,
+                        y: 50,
+                        width: third,
+                        height: canvas.height - 100,
+                        number: 2
+                    });
+                    panels.push({
+                        type: 'rectangle',
+                        x: 150 + third * 2,
+                        y: 50,
+                        width: third,
+                        height: canvas.height - 100,
+                        number: 3
+                    });
+                    break;
+                    
+                case 'dynamic':
+                    // Layout dynamique avec différentes tailles
+                    panels.push({
+                        type: 'rectangle',
+                        x: 50,
+                        y: 50,
+                        width: canvas.width - 300,
+                        height: canvas.height - 100,
+                        number: 1
+                    });
+                    panels.push({
+                        type: 'rectangle',
+                        x: canvas.width - 250,
+                        y: 50,
+                        width: 200,
+                        height: (canvas.height - 150) / 2,
+                        number: 2
+                    });
+                    panels.push({
+                        type: 'rectangle',
+                        x: canvas.width - 250,
+                        y: (canvas.height - 150) / 2 + 100,
+                        width: 200,
+                        height: (canvas.height - 150) / 2,
+                        number: 3
+                    });
+                    break;
+            }
+            
+            redrawPanels();
+            showNotification(`Préset "${preset}" chargé!`, 'success');
+        }
+
+        function distanceToLine(x, y, x1, y1, x2, y2) {
+            const A = x - x1;
+            const B = y - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+            
+            if (lenSq !== 0) param = dot / lenSq;
+
+            let xx, yy;
+
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+
+            const dx = x - xx;
+            const dy = y - yy;
+            
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function useInPanel(generationId) {
+            showNotification('Image IA ajoutée à la planche!', 'success');
+            showPage('panels');
+            
+            // Ajouter un marqueur pour l'image IA
+            panels.push({
+                type: 'text',
+                x: 100,
+                y: 100,
+                text: '[Image IA]',
+                font: '20px Arial'
+            });
+            
+            redrawPanels();
+        }
+
+        // ===== FONCTIONS UTILITAIRES =====
+        function openModal(modalName) {
+            const modal = document.getElementById(`modal${modalName.charAt(0).toUpperCase() + modalName.slice(1)}`);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal(modalName) {
+            const modal = document.getElementById(`modal${modalName.charAt(0).toUpperCase() + modalName.slice(1)}`);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal.active').forEach(modal => {
+                modal.classList.remove('active');
+            });
+            document.body.style.overflow = '';
+        }
+
+        function showNotification(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('notifications') || createNotificationContainer();
+            
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">${escapeHTML(message)}</div>
+                <button class="notification-close">&times;</button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Afficher avec animation
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Supprimer après délai
+            const timeout = setTimeout(() => {
+                removeNotification(notification);
+            }, duration);
+            
+            // Fermeture manuelle
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                clearTimeout(timeout);
+                removeNotification(notification);
+            });
+        }
+
+        function createNotificationContainer() {
+            const container = document.createElement('div');
+            container.id = 'notifications';
+            container.className = 'notifications-container';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function removeNotification(notification) {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return str;
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Non spécifié';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        function estimatePages(wordCount) {
+            // Estimation: 250 mots = 1 page de manga
+            return Math.ceil(wordCount / 250);
+        }
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('mangaforge-theme', theme);
+            
+            // Mettre à jour le bouton
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            if (theme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Mode clair';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Mode sombre';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        }
+
+        function switchTab(tabId) {
+            // Désactiver tous les onglets
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Activer l'onglet sélectionné
+            document.querySelector(`.tab[data-tab="${tabId}"]`)?.classList.add('active');
+            document.getElementById(`tab-${tabId}`)?.classList.add('active');
+        }
+
+        function renderCharactersSelection(selectedCharacterIds = []) {
+            const container = document.getElementById('charactersSelection');
+            if (!container) return;
+            
+            const characters = mangaData.characters;
+            
+            if (characters.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim);">Aucun personnage disponible</p>';
+                return;
+            }
+            
+            container.innerHTML = characters.map(character => {
+                const isSelected = selectedCharacterIds.includes(character.id);
+                return `
+                    <div style="display: flex; align-items: center; margin-bottom: 8px; padding: 8px; border-radius: 6px; background: ${isSelected ? 'var(--bg-secondary)' : 'transparent'}">
+                        <input type="checkbox" 
+                               id="char-${character.id}" 
+                               value="${character.id}"
+                               ${isSelected ? 'checked' : ''}
+                               style="margin-right: 10px;"
+                               onchange="updateChapterCharacters(${character.id}, this.checked)">
+                        <label for="char-${character.id}" style="flex: 1; cursor: pointer;">
+                            <strong>${escapeHTML(character.name)}</strong>
+                            <div style="font-size: 12px; color: var(--text-dim);">
+                                ${escapeHTML(character.role)} • ${escapeHTML(character.age)} ans
+                            </div>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateChapterCharacters(characterId, isSelected) {
+            if (!mangaData.currentChapterId) return;
+            
+            const chapter = mangaData.chapters.find(c => c.id === mangaData.currentChapterId);
+            if (!chapter) return;
+            
+            if (!chapter.characters) chapter.characters = [];
+            
+            if (isSelected) {
+                if (!chapter.characters.includes(characterId)) {
+                    chapter.characters.push(characterId);
+                }
+            } else {
+                chapter.characters = chapter.characters.filter(id => id !== characterId);
+            }
+            
+            saveData();
+        }
+
+        function setupAutoSave() {
+            let saveTimeout;
+            
+            const elementsToWatch = [
+                'chapterTitle',
+                'chapterContent',
+                'chapterNotes',
+                'chapterKeywords'
+            ];
+            
+            elementsToWatch.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        clearTimeout(saveTimeout);
+                        saveTimeout = setTimeout(() => {
+                            if (mangaData.currentChapterId) {
+                                saveCurrentChapter();
+                            }
+                        }, 2000);
+                    });
+                }
+            });
+        }
+
+        function previewChapter() {
+            if (!mangaData.currentChapterId) return;
+            
+            const chapter = mangaData.chapters.find(c => c.id === mangaData.currentChapterId);
+            if (!chapter) return;
+            
+            const content = `
+                <h2>Chapitre ${chapter.number}: ${chapter.title || 'Sans titre'}</h2>
+                <div style="margin: 20px 0; color: var(--text-dim); font-size: 14px;">
+                    <strong>Statut:</strong> ${chapter.status}<br>
+                    <strong>Mots:</strong> ${chapter.wordCount || 0}<br>
+                    <strong>Pages estimées:</strong> ${chapter.pages || 0}
+                </div>
+                <hr style="margin: 20px 0; border-color: var(--border);">
+                <div style="line-height: 1.8;">
+                    ${chapter.content || '<p style="color: var(--text-dim); font-style: italic;">Aucun contenu...</p>'}
+                </div>
+            `;
+            
+            // Ouvrir dans une nouvelle fenêtre pour l'impression
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Chapitre ${chapter.number}: ${chapter.title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }
+                        h2 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+                        @media print {
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            
+            showNotification('Prévisualisation ouverte dans un nouvel onglet', 'info');
+        }
+
+        // ===== FONCTIONS GLOBALES =====
+        window.openProject = function(projectId) {
+            mangaData.currentProjectId = projectId;
+            showPage('chapters');
+        };
+
+        window.editProject = function(projectId) {
+            showNotification('Édition du projet #' + projectId, 'info');
+        };
+
+        window.deleteProject = function(projectId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
+                const index = mangaData.projects.findIndex(p => p.id === projectId);
+                if (index !== -1) {
+                    mangaData.projects.splice(index, 1);
+                    saveData();
+                    renderProjects();
+                    renderRecentProjects();
+                    updateStats();
+                    showNotification('Projet supprimé', 'info');
+                }
+            }
+        };
+
+        window.generateCharacterImage = function(characterId) {
+            const character = mangaData.characters.find(c => c.id === characterId);
+            if (character) {
+                document.getElementById('aiPrompt').value = `Portrait manga de ${character.name}, ${character.age} ans, ${character.appearance}. ${character.personality}. Style shonen dynamique.`;
+                document.getElementById('aiStyle').value = 'shonen';
+                showPage('ai');
+                showNotification('Prompt pré-rempli pour le personnage', 'info');
+            }
+        };
+
+        window.generateLocationImage = function(locationId) {
+            const location = mangaData.locations.find(l => l.id === locationId);
+            if (location) {
+                document.getElementById('aiPrompt').value = `Décors manga de ${location.name}, ${location.type}, ambiance ${location.mood}. ${location.description}. Style seinen réaliste.`;
+                document.getElementById('aiStyle').value = 'seinen';
+                showPage('ai');
+                showNotification('Prompt pré-rempli pour le décor', 'info');
+            }
+        };
+
+        window.exportCharacter = function(characterId) {
+            const character = mangaData.characters.find(c => c.id === characterId);
+            if (character) {
+                const dataStr = JSON.stringify(character, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `personnage_${character.name}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showNotification(`Personnage "${character.name}" exporté!`, 'success');
+            }
+        };
+
+        window.exportLocation = function(locationId) {
+            const location = mangaData.locations.find(l => l.id === locationId);
+            if (location) {
+                const dataStr = JSON.stringify(location, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `decor_${location.name}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showNotification(`Décor "${location.name}" exporté!`, 'success');
+            }
+        };
+
+        window.regenerateAIImage = function() {
+            const prompt = document.getElementById('aiPrompt').value;
+            if (prompt) {
+                generateAIImage();
+            }
+        };
+
+        // ===== GESTION DES CHAPITRES (existant) =====
+        function createNewChapter() {
+            const chapters = mangaData.chapters;
+            const nextNumber = chapters.length > 0 ? Math.max(...chapters.map(c => c.number)) + 1 : 1;
+            
+            const newChapter = {
+                id: Date.now(),
+                projectId: mangaData.currentProjectId || 1,
+                number: nextNumber,
+                title: '',
+                content: '',
+                status: 'draft',
+                keywords: [],
+                characters: [],
+                notes: '',
+                wordCount: 0,
+                pages: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            mangaData.chapters.push(newChapter);
+            saveData();
+            
+            loadChapter(newChapter.id);
+            renderChapters();
+            updateStats();
+            
+            showNotification('Nouveau chapitre créé', 'success');
+        }
+
+        function loadChapter(chapterId) {
+            const chapter = mangaData.chapters.find(c => c.id === chapterId);
+            if (!chapter) return;
+            
+            mangaData.currentChapterId = chapterId;
+            
+            // Afficher l'éditeur
+            document.getElementById('chapterEditor').style.display = 'flex';
+            
+            // Mettre à jour le titre
+            document.getElementById('editorTitle').textContent = 
+                `Chapitre ${chapter.number}${chapter.title ? `: ${escapeHTML(chapter.title)}` : ''}`;
+            
+            // Remplir les champs
+            document.getElementById('chapterNumber').value = chapter.number;
+            document.getElementById('chapterTitle').value = chapter.title || '';
+            document.getElementById('chapterContent').innerHTML = chapter.content || '';
+            document.getElementById('chapterStatus').value = chapter.status;
+            document.getElementById('chapterKeywords').value = chapter.keywords?.join(', ') || '';
+            document.getElementById('chapterNotes').value = chapter.notes || '';
+            
+            // Mettre à jour la sélection des personnages
+            renderCharactersSelection(chapter.characters || []);
+            
+            // Mettre à jour la liste des chapitres
+            renderChapters();
+            
+            // Activer le premier onglet
+            switchTab('content');
+        }
+
+        function saveCurrentChapter() {
+            if (!mangaData.currentChapterId) return;
+            
+            const chapter = mangaData.chapters.find(c => c.id === mangaData.currentChapterId);
+            if (!chapter) return;
+            
+            // Récupérer les valeurs
+            chapter.number = parseInt(document.getElementById('chapterNumber').value) || 1;
+            chapter.title = document.getElementById('chapterTitle').value.trim();
+            chapter.content = document.getElementById('chapterContent').innerHTML;
+            chapter.status = document.getElementById('chapterStatus').value;
+            
+            // Keywords
+            const keywords = document.getElementById('chapterKeywords').value;
+            chapter.keywords = keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+            
+            // Notes
+            chapter.notes = document.getElementById('chapterNotes').value;
+            
+            // Mettre à jour la date
+            chapter.updatedAt = new Date().toISOString();
+            
+            // Calculer les statistiques
+            chapter.wordCount = countWords(chapter.content);
+            chapter.pages = estimatePages(chapter.wordCount);
+            
+            // Sauvegarder
+            saveData();
+            
+            // Mettre à jour l'interface
+            renderChapters();
+            document.getElementById('editorTitle').textContent = 
+                `Chapitre ${chapter.number}${chapter.title ? `: ${escapeHTML(chapter.title)}` : ''}`;
+            
+            showNotification('Chapitre sauvegardé', 'success');
+        }
+
+        function renderChapters() {
+            const container = document.getElementById('chaptersList');
+            if (!container) return;
+            
+            const chapters = mangaData.chapters.sort((a, b) => a.number - b.number);
+            
+            if (chapters.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Aucun chapitre pour le moment</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = chapters.map(chapter => {
+                const statusLabels = {
+                    'draft': 'Brouillon',
+                    'in-progress': 'En cours',
+                    'review': 'Relecture',
+                    'completed': 'Terminé'
+                };
+                
+                const statusClass = {
+                    'draft': 'status-draft',
+                    'in-progress': 'status-in-progress',
+                    'review': 'status-review',
+                    'completed': 'status-completed'
+                };
+                
+                const isActive = mangaData.currentChapterId === chapter.id;
+                
+                return `
+                    <div class="chapter-item ${isActive ? 'active' : ''}" data-id="${chapter.id}">
+                        <div class="chapter-info">
+                            <div class="chapter-title">
+                                Chapitre ${chapter.number}${chapter.title ? `: ${escapeHTML(chapter.title)}` : ''}
+                            </div>
+                            <div class="chapter-meta">
+                                <span>${chapter.wordCount || 0} mots</span>
+                                <span>•</span>
+                                <span>${chapter.pages || 0} pages</span>
+                                <span>•</span>
+                                <span>${formatDate(chapter.updatedAt)}</span>
+                            </div>
+                        </div>
+                        <div class="chapter-status ${statusClass[chapter.status]}">
+                            ${statusLabels[chapter.status]}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Ajouter les écouteurs d'événements
+            container.querySelectorAll('.chapter-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const chapterId = parseInt(this.getAttribute('data-id'));
+                    loadChapter(chapterId);
+                });
+            });
+        }
+    
+    //NEW
+    // Nouvelles fonctions pour gérer les relations
+    function openCharacterRelations(characterId) {
+        const character = mangaData.characters.find(c => c.id === characterId);
+        if (!character) return;
+        
+        mangaData.currentCharacterId = characterId;
+        
+        // Charger la liste des personnages
+        renderCharacterRelationList();
+        
+        // Charger le graphique
+        renderRelationGraph(characterId);
+        
+        openModal('characterRelations');
+    }
+
+    function renderCharacterRelationList() {
+        const container = document.getElementById('characterRelationList');
+        const selectA = document.getElementById('relationCharA');
+        const selectB = document.getElementById('relationCharB');
+        
+        container.innerHTML = '';
+        selectA.innerHTML = '';
+        selectB.innerHTML = '';
+        
+        mangaData.characters.forEach(character => {
+            // Liste pour le modal
+            const div = document.createElement('div');
+            div.className = 'character-relation-item';
+            div.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 6px; cursor: pointer;"
+                    onclick="selectCharacterForRelation(${character.id})">
+                    <div class="character-avatar-small">${character.name.charAt(0)}</div>
+                    <div>
+                        <strong>${escapeHTML(character.name)}</strong>
+                        <div style="font-size: 12px; color: var(--text-dim);">${escapeHTML(character.role)}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            
+            // Options pour les selects
+            const option = new Option(character.name, character.id);
+            selectA.add(option.cloneNode(true));
+            selectB.add(option);
+        });
+    }
+
+    function renderRelationGraph(characterId) {
+        const container = document.getElementById('relationGraph');
+        const character = mangaData.characters.find(c => c.id === characterId);
+        
+        if (!character) return;
+        
+        // Créer un SVG simple pour visualiser les relations
+        const svg = `
+            <svg width="100%" height="100%">
+                <circle cx="50%" cy="50%" r="40" fill="#6366f1" />
+                <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-weight="bold">
+                    ${character.name.charAt(0)}
+                </text>
+                
+                <!-- Relations -->
+                ${character.relationships ? character.relationships.map((rel, i) => {
+                    const relatedChar = mangaData.characters.find(c => c.id === rel.characterId);
+                    if (!relatedChar) return '';
+                    
+                    const angle = (i / (character.relationships.length || 1)) * 2 * Math.PI;
+                    const x = 50 + 30 * Math.cos(angle);
+                    const y = 50 + 30 * Math.sin(angle);
+                    
+                    return `
+                        <line x1="50%" y1="50%" x2="${x}%" y2="${y}%" stroke="#94a3b8" stroke-width="2" />
+                        <circle cx="${x}%" cy="${y}%" r="20" fill="#10b981" />
+                        <text x="${x}%" y="${y}%" text-anchor="middle" dy=".3em" fill="white" font-size="12">
+                            ${relatedChar.name.charAt(0)}
+                        </text>
+                    `;
+                }).join('') : ''}
+            </svg>
+        `;
+        
+        container.innerHTML = svg;
+        
+        // Afficher les relations existantes
+        renderExistingRelations(characterId);
+    }
+
+    function renderExistingRelations(characterId) {
+        const container = document.getElementById('existingRelations');
+        const character = mangaData.characters.find(c => c.id === characterId);
+        
+        if (!character || !character.relationships || character.relationships.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-dim); text-align: center;">Aucune relation définie</p>';
+            return;
+        }
+        
+        container.innerHTML = character.relationships.map(rel => {
+            const relatedChar = mangaData.characters.find(c => c.id === rel.characterId);
+            if (!relatedChar) return '';
+            
+            const typeLabels = {
+                'friend': '👥 Ami',
+                'family': '👨‍👩‍👧‍👦 Famille',
+                'rival': '⚔️ Rival',
+                'romantic': '❤️ Romantique',
+                'mentor': '🧙 Mentor',
+                'enemy': '💀 Ennemi'
+            };
+            
+            return `
+                <div class="relation-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="character-avatar-small">${relatedChar.name.charAt(0)}</div>
+                        <div>
+                            <strong>${escapeHTML(relatedChar.name)}</strong>
+                            <div style="font-size: 12px; color: var(--text-dim);">${escapeHTML(relatedChar.role)}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="tag tag-primary">${typeLabels[rel.type] || rel.type}</span>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            ${escapeHTML(rel.description || '')}
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-small" onclick="removeCharacterRelation(${characterId}, ${rel.characterId})">
+                        Supprimer
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function addCharacterRelation() {
+        const charAId = parseInt(document.getElementById('relationCharA').value);
+        const type = document.getElementById('relationType').value;
+        const description = document.getElementById('relationDesc').value.trim();
+        
+        if (!charAId || !type) {
+            showNotification('Veuillez sélectionner un personnage et un type de relation', 'warning');
+            return;
+        }
+        
+        const character = mangaData.characters.find(c => c.id === mangaData.currentCharacterId);
+        if (!character) return;
+        
+        if (!character.relationships) character.relationships = [];
+        
+        // Vérifier si la relation existe déjà
+        const existingRelation = character.relationships.find(r => r.characterId === charAId);
+        if (existingRelation) {
+            showNotification('Cette relation existe déjà', 'warning');
+            return;
+        }
+        
+        character.relationships.push({
+            characterId: charAId,
+            type: type,
+            description: description,
+            createdAt: new Date().toISOString()
+        });
+        
+        saveData();
+        renderRelationGraph(mangaData.currentCharacterId);
+        
+        // Réinitialiser le formulaire
+        document.getElementById('relationDesc').value = '';
+        
+        showNotification('Relation ajoutée avec succès', 'success');
+    }
+
+    function removeCharacterRelation(characterId, relatedCharId) {
+        const character = mangaData.characters.find(c => c.id === characterId);
+        if (!character || !character.relationships) return;
+        
+        character.relationships = character.relationships.filter(r => r.characterId !== relatedCharId);
+        saveData();
+        renderRelationGraph(characterId);
+        showNotification('Relation supprimée', 'info');
+    }
+
+    // Ajouter au menu contextuel des personnages
+    window.openCharacterRelations = openCharacterRelations;
+
+    </script>
+</body>
+</html>
